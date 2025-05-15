@@ -2,9 +2,9 @@
  * (c)LGPL2+
  *
  * LXQt - a lightweight, Qt based, desktop toolset
- * https://lxqt.org
+ * https://lxqt-project.org
  *
- * Copyright: 2010-2011 Razor team
+ * Copyright: 2011-12 Razor Team;  2012-2020 LXQt Project
  * Authors:
  *   Alexander Sokoloff <sokoloff.a@gmail.com>
  *
@@ -29,9 +29,9 @@
 #include <QDebug>
 #include <QSettings>
 #include <QStringList>
-#include <QTextCodec>
 #include <QTextDocument>
 #include <QHash>
+#include <QRegularExpression>
 
 //using namespace LXQt;
 
@@ -183,6 +183,7 @@ void fillLangguages(QHash<QString, QString> *languages)
     languages->insert(QStringLiteral("lt")    ,QStringLiteral("Lithuanian"));
     languages->insert(QStringLiteral("lt_LT") ,QStringLiteral("Lithuanian (Lithuania)"));
     languages->insert(QStringLiteral("nds")   ,QStringLiteral("Low German"));
+    languages->insert(QStringLiteral("lg")    ,QStringLiteral("Luganda (Africa)"));
     languages->insert(QStringLiteral("lb")    ,QStringLiteral("Luxembourgish"));
     languages->insert(QStringLiteral("mk")    ,QStringLiteral("Macedonian"));
     languages->insert(QStringLiteral("mk_MK") ,QStringLiteral("Macedonian (Macedonia)"));
@@ -352,16 +353,15 @@ QString getValue(const QSettings &src, const QString &key)
 TranslatorsInfo::TranslatorsInfo()
 {
     //fillLangguages(&mLanguagesList);
-
     QSettings src(QStringLiteral(":/translatorsInfo"), QSettings::IniFormat);
-    src.setIniCodec("UTF-8");
 
     const auto groups = src.childGroups();
-    for(const QString& group : qAsConst(groups))
+    for(const QString& group : std::as_const(groups))
     {
-        QString lang = group.section(QStringLiteral("_"), 1).remove(QStringLiteral(".info"));
+        QString lang = languageToString(group.section(QStringLiteral("_"), 1).remove(QStringLiteral(".info")));
         src.beginGroup(group);
         int cnt = src.allKeys().count();
+        std::set<TranslatorPerson> translators;
         for (int i=0; i<cnt; i++)
         {
             QString nameEnglish = getValue(src, QStringLiteral("translator_%1_nameEnglish").arg(i));
@@ -370,11 +370,12 @@ TranslatorsInfo::TranslatorsInfo()
 
             if (!nameEnglish.isEmpty())
             {
-                process(lang, nameEnglish, nameNative, contact);
+                translators.emplace(std::move(nameEnglish), std::move(nameNative), std::move(contact));
             }
-
         }
         src.endGroup();
+        if (!translators.empty())
+            mLangTranslators.emplace(std::move(lang), std::move(translators));
     }
 }
 
@@ -387,7 +388,7 @@ QString TranslatorsInfo::asHtml() const
         const auto& lang = entry.first;
         const auto& translators = entry.second;
 
-        ret += QLatin1String("<dt><strong>") + languageToString(lang) + QLatin1String("</strong></dt>");
+        ret += QLatin1String("<dt><strong>") + lang + QLatin1String("</strong></dt>");
         for(const auto & translator : translators) {
             ret += QLatin1String("<dd>") + translator.asHtml() + QLatin1String("</dd>");
         }
@@ -395,12 +396,6 @@ QString TranslatorsInfo::asHtml() const
     ret += QLatin1String("</dl>");
 
     return ret;
-}
-
-
-void TranslatorsInfo::process(const QString &lang, const QString &englishName, const QString &nativeName, const QString &contact)
-{
-    mLangTranslators[lang].emplace(englishName, nativeName, contact);
 }
 
 QString TranslatorPerson::asHtml() const
@@ -413,7 +408,8 @@ QString TranslatorPerson::asHtml() const
 
     if (!mContact.isEmpty())
     {
-        if (mContact.contains(QRegExp(QStringLiteral("^(https?|mailto):"))))
+        static const QRegularExpression regexp(QStringLiteral("^(https?|mailto):"));
+        if (mContact.contains(regexp))
             ret = QStringLiteral(" <a href='%1'>%2</a>").arg(mContact, ret.toHtmlEscaped());
         else if (mContact.contains(QLatin1String("@")) || mContact.contains(QLatin1String("<")))
             ret = QStringLiteral(" <a href='mailto:%1'>%2</a>").arg(mContact, ret.toHtmlEscaped());

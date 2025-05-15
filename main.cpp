@@ -2,9 +2,9 @@
  * (c)LGPL2+
  *
  * LXQt - a lightweight, Qt based, desktop toolset
- * https://lxqt.org
+ * https://lxqt-project.org
  *
- * Copyright: 2010-2011 Razor team
+ * Copyright: 2011-12 Razor Team;  2012-2020 LXQt Project
  * Authors:
  *   Petr Vanek <petr@scribus.info>
  *
@@ -35,7 +35,6 @@
 int main(int argc, char *argv[])
 {
     LXQt::Application app(argc, argv);
-    app.setAttribute(Qt::AA_UseHighDpiPixmaps, true);
 
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("LXQt About"));

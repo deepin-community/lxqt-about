@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18.0 FATAL_ERROR)
 # CMP0000: Call the cmake_minimum_required() command at the beginning of the top-level
 # CMakeLists.txt file even before calling the project() command.
 # The cmake_minimum_required(VERSION) command implicitly invokes the cmake_policy(VERSION)
@@ -27,7 +27,7 @@ set(UI_FILES
 )
 
 # Minimum versions
-set(LXQT_MINIMUM_VERSION "0.16.0")
+set(LXQT_MINIMUM_VERSION "2.1.0")
 
 find_package(lxqt ${LXQT_MINIMUM_VERSION} REQUIRED)
 
@@ -60,6 +60,7 @@ lxqt_app_translation_loader(QM_LOADER ${PROJECT_NAME})
 lxqt_translate_desktop(DESKTOP_FILES
     SOURCES
     resources/lxqt-about.desktop.in
+    USE_YAML
 )
 #************************************************
 
@@ -89,3 +90,8 @@ install(FILES
     DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications"
     COMPONENT Runtime
 )
+install(DIRECTORY
+    resources/hicolor
+    DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons"
+    COMPONENT Runtime
+ )
