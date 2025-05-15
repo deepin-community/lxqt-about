@@ -2,9 +2,9 @@
  * (c)LGPL2+
  *
  * LXQt - The Lightweight Desktop Environment
- * https://lxqt.org
+ * https://lxqt-project.org
  *
- * Copyright: 2010-2011 Razor team
+ * Copyright: 2011-12 Razor Team;  2012-2020 LXQt Project
  * Authors:
  *   Petr Vanek <petr@scribus.info>
  *
@@ -34,6 +34,7 @@
 #include <QDebug>
 #include <QDate>
 #include <QClipboard>
+#include <QDesktopServices>
 
 AboutDialogPrivate::AboutDialogPrivate()
 {
@@ -70,8 +71,12 @@ AboutDialogPrivate::AboutDialogPrivate()
     TechnicalInfo info;
     techBrowser->setHtml(info.html());
     techBrowser->viewport()->setAutoFillBackground(false);
+    techBrowser->setOpenLinks(false);
+    connect(techBrowser, &QTextBrowser::anchorClicked, this, [](const QUrl &link) {
+        QDesktopServices::openUrl(link);
+    });
 
-    connect(techCopyToClipboardButton, SIGNAL(clicked()), this, SLOT(copyToCliboardTechInfo()));
+    connect(techCopyToClipboardButton, &QPushButton::clicked, this, &AboutDialogPrivate::copyToCliboardTechInfo);
     this->setAttribute(Qt::WA_DeleteOnClose);
     show();
 
@@ -91,7 +96,10 @@ QString AboutDialogPrivate::aboutText() const
         "<p>%2</p>"
         "<p>%3</p>"
         "<p>%4</p>"
-        "<p>%5</p>")
+        "<p>%5</p>"
+        "<p>%6</p>"
+        "<p>%7</p>"
+        )
         .arg(
             tr("Advanced, easy-to-use, and fast desktop environment based on Qt technologies.",
                "About dialog, 'About' tab text"),
@@ -100,7 +108,11 @@ QString AboutDialogPrivate::aboutText() const
             tr("Copyright: © %1-%2 %3", "About dialog, 'About' tab text")
                 .arg(QStringLiteral("2010"), QDate::currentDate().toString(QStringLiteral("yyyy")), QStringLiteral("LXQt team")),
             tr("Homepage: %1", "About dialog, 'About' tab text")
-                .arg(QStringLiteral("<a href=\"https://lxqt.github.io\">https://lxqt.github.io</a>")),
+                .arg(QStringLiteral("<a href=\"https://lxqt-project.org\">https://lxqt-project.org</a>")),
+           tr("Wiki: %1", "About dialog, 'About' tab text")
+                .arg(QStringLiteral("<a href=\"https://github.com/lxqt/lxqt/wiki\">https://github.com/lxqt/lxqt/wiki</a>")),
+           tr("Development: %1", "About dialog, 'About' tab text")
+                .arg(QStringLiteral("<a href=\"https://github.com/lxqt/\">https://github.com/lxqt</a>")),
             tr("License: %1", "About dialog, 'About' tab text")
                 .arg(QStringLiteral("<a href=\"https://www.gnu.org/licenses/lgpl-2.1.html\">GNU Lesser General Public License version 2.1 or later</a>"
                      " and partly under the "
@@ -112,9 +124,9 @@ QString AboutDialogPrivate::authorsText() const
 {
     return QStringLiteral("<p>%1</p><p>%2</p>").arg(
                 tr("LXQt is developed by the <a %1>LXQt Team and contributors</a>.", "About dialog, 'Authors' tab text")
-                    .arg(QStringLiteral(" href=\"https://github.com/lxqt/lxqt\"")),
+                    .arg(QStringLiteral(" href=\"https://github.com/lxqt\"")),
                 tr("If you are interested in working with our development team, <a %1>join us</a>.", "About dialog, 'Authors' tab text")
-                    .arg(QStringLiteral("href=\"https://lxqt.github.io\""))
+                    .arg(QStringLiteral("href=\"https://github.com/orgs/lxqt/people\""))
                 );
 }
 

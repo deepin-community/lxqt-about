@@ -2,9 +2,9 @@
  * (c)LGPL2+
  *
  * LXQt - a lightweight, Qt based, desktop toolset
- * https://lxqt.org
+ * https://lxqt-project.org
  *
- * Copyright: 2010-2011 Razor team
+ * Copyright: 2011-12 Razor Team;  2012-2020 LXQt Project
  * Authors:
  *   Alexander Sokoloff <sokoloff.a@gmail.com>
  *
@@ -73,8 +73,13 @@ public:
     QString asHtml() const;
 
 private:
-    std::map<QString, std::set<TranslatorPerson> > mLangTranslators; //< maps a language to set of it's translators
-    void process(const QString &lang, const QString &englishName, const QString &nativeName, const QString &contact);
+    struct StringLocaleLower {
+        inline bool operator ()(const QString & s1, const QString & s2) const
+        {
+            return QString::localeAwareCompare(s1, s2) < 0;
+        }
+    };
+    std::map<QString, std::set<TranslatorPerson>, StringLocaleLower > mLangTranslators; //< maps a language to set of it's translators
 };
 
 //} //namecpace LXQt
